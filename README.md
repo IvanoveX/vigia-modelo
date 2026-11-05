@@ -88,7 +88,14 @@ Todos os comandos abaixo são digitados no Terminal, dentro da pasta `modelo/` d
 
 O GMDCSA-24 não vai para o git (vídeos são ignorados). Página: https://zenodo.org/records/13354453. O arquivo tem cerca de 1,1 GB.
 
-Baixe o arquivo `.zip` pelo botão de download da página do Zenodo (o nome do arquivo na página pode mudar, por isso não há link direto aqui) e salve em `modelo/dados/brutos/zip/gmdcsa24.zip`. Depois, na pasta `modelo/`:
+Baixe e extraia com os comandos abaixo, dentro de `modelo/`. O `-C -` retoma o download se a conexão cair; rode de novo até terminar:
+
+```
+mkdir -p dados/brutos/zip
+curl -L -C - -o dados/brutos/zip/gmdcsa24.zip "https://zenodo.org/api/records/13354453/files/ekramalam/GMDCSA24-A-Dataset-for-Human-Fall-Detection-in-Videos-v2.1.zip/content"
+```
+
+Esperado: `ls -l dados/brutos/zip/gmdcsa24.zip` mostra 1107545615 bytes. Depois extraia:
 
 ```
 mkdir -p dados/brutos/extraidos
