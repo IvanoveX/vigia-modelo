@@ -6,6 +6,14 @@ O baseline é uma regra geométrica, não é o modelo. Os JSONs guardam só coor
 
 ## Como rodar do zero num Mac
 
+Requisitos:
+
+- Python 3.12 ou superior. O `python3` do Mac pode ser uma versão antiga: confira com `python3 --version` e, se precisar, use `python3.12` nos comandos de criar o ambiente.
+- Mac com Apple Silicon e macOS 14 ou superior. O mediapipe 1.2.2 não tem pacote (wheel) para Mac Intel.
+- Pastas lado a lado: este repositório deve ficar em `projeto/modelo`, ao lado de `projeto/interface/VIGIA`. Os comandos usam `../interface/VIGIA/public/clipes` como destino e como pasta de dados do treino.
+
+Aviso: os comandos rodaram em Linux (Fedora, Python 3.14). Ainda não foram testados em Mac. Se falhar no Mac, tente Python 3.12 e, em `requirements.txt`, `mediapipe==0.10.35`.
+
 Todos os comandos abaixo são digitados no Terminal, dentro da pasta `modelo/` do projeto.
 
 1. Entrar na pasta (ajuste o caminho para onde o projeto está no seu Mac):
@@ -19,7 +27,7 @@ Todos os comandos abaixo são digitados no Terminal, dentro da pasta `modelo/` d
 2. Criar o ambiente Python isolado (só na primeira vez):
 
    ```
-   python3 -m venv .venv
+   python3.12 -m venv .venv
    ```
 
    Esperado: nenhuma mensagem; aparece a pasta `.venv`.
@@ -76,6 +84,23 @@ Todos os comandos abaixo são digitados no Terminal, dentro da pasta `modelo/` d
 
    Esperado: `<arquivo>.json: ok` para cada clipe. Qualquer `INVÁLIDO` vem com a lista de erros.
 
+## Dataset
+
+O GMDCSA-24 não vai para o git (vídeos são ignorados). Página: https://zenodo.org/records/13354453. O arquivo tem cerca de 1,1 GB.
+
+Baixe o arquivo `.zip` pelo botão de download da página do Zenodo (o nome do arquivo na página pode mudar, por isso não há link direto aqui) e salve em `modelo/dados/brutos/zip/gmdcsa24.zip`. Depois, na pasta `modelo/`:
+
+```
+mkdir -p dados/brutos/extraidos
+unzip -q dados/brutos/zip/gmdcsa24.zip -d dados/brutos/extraidos
+```
+
+Esperado: a pasta `dados/brutos/extraidos/ekramalam-GMDCSA24-A-Dataset-for-Human-Fall-Detection-in-Videos-5abac76` com `Subject 1` a `Subject 4`. Confira a contagem, que deve ser 160:
+
+```
+find dados/brutos/extraidos -name "*.mp4" | wc -l
+```
+
 ## Comandos
 
 Todos rodam como `python -m vigia_modelo <comando>`. Use `--help` em qualquer um para ver as opções.
@@ -108,15 +133,20 @@ Do model card do MediaPipe: o modelo é "not intended for human life-critical de
 
 ## Métricas enviadas ao Google
 
-O README do pacote `@mediapipe/tasks-vision` diz que o processamento da imagem é local e que a biblioteca envia métricas de desempenho e de uso ao Google, e que o responsável pelo aplicativo deve obter consentimento informado. Observado neste trabalho:
+O README do pacote `@mediapipe/tasks-vision` diz que o processamento da imagem é local e que a biblioteca envia métricas de desempenho e de uso ao Google, e que o responsável pelo aplicativo deve obter consentimento informado. Isso vale de forma diferente em cada caso:
 
-- No navegador: 1 POST de 143 bytes em 25 s, para `odml.pa.googleapis.com/v1/log`.
+- **Clipes públicos** (a demonstração com o GMDCSA-24): não envolvem pessoa nova, pois os vídeos já são públicos e só coordenadas saem deles.
+- **Webcam** (câmera ao vivo no front): a imagem da pessoa fica no dispositivo e não é enviada, mas as métricas de uso e desempenho vão ao Google. A tela avisa isso antes de ligar a câmera.
+
+Observado neste trabalho:
+
+- No navegador: 1 POST de 143 bytes para `odml.pa.googleapis.com/v1/log` em 25 s de observação. O código do pacote envia periodicamente, a cada 60 s, e ao fechar.
 - No Python: tentativas de conexão a `play.googleapis.com` durante o `processar` (conteúdo não inspecionado; bloqueadas pelo sandbox nesta máquina).
 
-Isso não afeta a demonstração com dados públicos, mas é um ponto a resolver antes de considerar o MediaPipe no produto, por causa da LGPD.
+É um ponto a resolver antes de considerar o MediaPipe no produto, por causa da LGPD.
 
 ## Créditos
 
-- O mapeamento dos 33 pontos do MediaPipe para os 17 pontos COCO e a configuração do detector vêm do notebook dos colegas do grupo, que fizeram a primeira versão desse trabalho.
+- O notebook dos colegas do grupo deu o mapeamento dos 33 pontos do MediaPipe para os 17 pontos COCO e os limiares de confiança do detector. A escolha do modelo heavy foi desta etapa; a câmera ao vivo do front usa o modelo lite.
 - Dataset: GMDCSA-24, E. Alam, A. Sufian, P. Dutta, M. Leo, I. A. Hameed. *GMDCSA24: A Dataset for Human Fall Detection in Videos*. Data in Brief, 2024. Licença CC BY 4.0, em https://zenodo.org/records/13354453. Os JSONs derivados trazem essa origem, licença e citação no campo `origem`.
 - O pacote do dataset no GitHub traz um `LICENSE` MIT (Ekram Alam). Cumprimos as duas licenças: a CC BY 4.0 dos dados, com a atribuição acima, e o aviso de copyright e permissão da MIT que acompanha o pacote, copiado em `LICENSE-GMDCSA24` na raiz deste repositório.
