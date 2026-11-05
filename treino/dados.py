@@ -30,9 +30,15 @@ def classe_do_rotulo(rotulo: str) -> int | None:
     return None if destino is None else CLASSES.index(destino)
 
 
-def normalizar(pontos: np.ndarray) -> np.ndarray:
-    """(T, 17, 3) -> mesmo formato, centrado nos quadris e escalado pelo tronco."""
-    pontos = np.asarray(pontos, dtype=np.float32)
+def normalizar(pontos: np.ndarray, largura: int = 1, altura: int = 1) -> np.ndarray:
+    """(T, 17, 3) -> mesmo formato, centrado nos quadris e escalado pelo tronco.
+
+    x e y chegam em fração do quadro; vão a pixels antes, porque o dataset mistura
+    resoluções e o tronco medido em fração distorce com o aspecto.
+    """
+    pontos = np.array(pontos, dtype=np.float32)
+    pontos[..., 0] *= largura
+    pontos[..., 1] *= altura
     saida = np.zeros_like(pontos)
     for i, quadro in enumerate(pontos):
         if np.isnan(quadro).any():
@@ -83,7 +89,8 @@ def janelas_do_clipe(clipe, duracao=2.0, passo=0.5, quadros=60):
     tempos = np.array([q["t"] for q in clipe["quadros"]])
     pontos = _pontos_do_clipe(clipe)
     com_pose = ~np.isnan(pontos).any(axis=(1, 2))
-    normalizado = normalizar(pontos)
+    video = clipe["video"]
+    normalizado = normalizar(pontos, video["largura"], video["altura"])
     fim = _duracao_do_clipe(tempos)
     X, y = [], []
     for inicio in np.arange(0, fim - duracao + EPS, passo):

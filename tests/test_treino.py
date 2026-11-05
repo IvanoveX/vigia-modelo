@@ -26,13 +26,14 @@ def pose_fixa(deslocamento=0.0):
     return pontos
 
 
-def clipe(arquivo, rotulos, segundos=6, fps=10, sem_pose=()):
+def clipe(arquivo, rotulos, segundos=6, fps=10, sem_pose=(), largura=640, altura=480):
     quadros = [
         {"t": i / fps, "pontos": None if i in sem_pose else pose_fixa()}
         for i in range(int(segundos * fps))
     ]
     return {
         "origem": {"arquivo": arquivo},
+        "video": {"largura": largura, "altura": altura},
         "quadros": quadros,
         "rotulos_origem": [
             {"t_ini": a, "t_fim": b, "rotulo": r} for a, b, r in rotulos
@@ -117,6 +118,22 @@ def test_janelas_do_clipe_forma_e_rotulo():
     assert X.shape[1:] == (60, 51)
     assert len(X) == len(y) == 9  # janelas de 2 s, passo 0,5 s, em 6 s
     assert set(y.tolist()) == {CLASSES.index("deitado")}
+
+
+def test_mesmo_corpo_em_resolucoes_diferentes_normaliza_igual():
+    # Mesmos pixels em 1280x720 e em 640x480: as frações diferem, o resultado não.
+    pixels = [[320.0 + 10 * i, 100.0 + 5 * i, 0.9] for i in range(17)]
+
+    def clipe_em(largura, altura):
+        c = clipe("Subject 1/A/1.mp4", [(0, 6, "Sleeping")], largura=largura, altura=altura)
+        pose = [[x / largura, y / altura, v] for x, y, v in pixels]
+        for q in c["quadros"]:
+            q["pontos"] = pose
+        return c
+
+    grande, pequeno = (janelas_do_clipe(clipe_em(*r))[0] for r in ((1280, 720), (640, 480)))
+    assert not np.isnan(grande).any()
+    np.testing.assert_allclose(grande, pequeno, atol=1e-5)
 
 
 def test_janelas_do_clipe_descarta_pouca_pose_e_aceita_clipe_sem_janela():
