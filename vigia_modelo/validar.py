@@ -60,6 +60,10 @@ def validar_pasta(pasta: Path) -> dict[str, list[str]]:
     for arquivo in sorted(Path(pasta).glob("*.json")):
         if arquivo.name == "indice.json":
             continue
-        clipe = json.loads(arquivo.read_text(encoding="utf-8"))
+        try:
+            clipe = json.loads(arquivo.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as erro:
+            resultado[arquivo.name] = [f"JSON malformado: {erro}"]
+            continue
         resultado[arquivo.name] = validar_publicacao(clipe)
     return resultado

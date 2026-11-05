@@ -113,3 +113,46 @@ def test_quadros_grava_pngs(tmp_path):
     saida = tmp_path / "conf"
     assert rodar("quadros", "--arquivo", video, "--saida", saida, "--n", 4) == 0
     assert len(list(saida.glob("*.png"))) == 4
+
+
+def test_processar_continua_apos_runtime_error(tmp_path, brutos, extracao_falsa, extracao, monkeypatch):
+    itens = [{"id_clipe": f"exemplo-{k}", "titulo": "Exemplo", "arquivo": f"Subject 9/ADL/0{k}.mp4",
+              "leito": {"poligono": POLIGONO}, "origem": ORIGEM_TESTE} for k in (1, 2)]
+    caminho = tmp_path / "dois.json"
+    caminho.write_text(json.dumps(itens), encoding="utf-8")
+
+    def extrair(arquivo, modelo):
+        if arquivo.name == "01.mp4":
+            raise RuntimeError("falha simulada do MediaPipe")
+        return extracao
+
+    monkeypatch.setattr(comandos, "extrair_clipe", extrair)
+    saida = tmp_path / "saida"
+    assert rodar("processar", "--manifesto", caminho, "--brutos", brutos, "--saida", saida) != 0
+    assert (saida / "exemplo-2.json").is_file() and not (saida / "indice.json").exists()
+
+
+def test_validar_pasta_inexistente(tmp_path, capsys):
+    assert rodar("validar", tmp_path / "nada") != 0
+    assert "não existe" in capsys.readouterr().out
+
+
+def test_validar_pasta_sem_json(tmp_path, capsys):
+    assert rodar("validar", tmp_path) != 0
+    assert "nenhum JSON" in capsys.readouterr().out
+
+
+def test_validar_json_malformado(tmp_path, capsys):
+    (tmp_path / "quebrado.json").write_text("{nao e json", encoding="utf-8")
+    assert rodar("validar", tmp_path) != 0
+    assert "quebrado.json" in capsys.readouterr().out
+
+
+def test_quadros_so_diz_fora_do_git_em_dados(tmp_path, capsys):
+    video = tmp_path / "v.mp4"
+    escritor = cv2.VideoWriter(str(video), cv2.VideoWriter_fourcc(*"mp4v"), 10, (64, 48))
+    for i in range(5):
+        escritor.write(np.full((48, 64, 3), i * 10, dtype=np.uint8))
+    escritor.release()
+    rodar("quadros", "--arquivo", video, "--saida", tmp_path / "conf", "--n", 2)
+    assert "fora do git" not in capsys.readouterr().out

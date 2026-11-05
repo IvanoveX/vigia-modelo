@@ -45,7 +45,7 @@ def processar(args) -> int:
     for entrada in entradas:
         try:
             clipe = _processar_um(entrada, args, modelo)
-        except (ValueError, OSError) as erro:
+        except Exception as erro:  # um clipe ruim não pode parar o lote
             print(f"ERRO {entrada['id_clipe']}: {erro}")
             falhas += 1
             continue
@@ -129,12 +129,20 @@ def quadros(args) -> int:
         if ok:
             cv2.imwrite(str(saida / f"{base}-{k}.png"), quadro)
     captura.release()
-    print(f"Quadros gravados em {saida} (pasta local, fora do git)")
+    aviso = " (pasta local, fora do git)" if "dados" in saida.parts else ""
+    print(f"Quadros gravados em {saida}{aviso}")
     return 0
 
 
 def validar(args) -> int:
-    resultado = validar_pasta(Path(args.pasta))
+    pasta = Path(args.pasta)
+    if not pasta.is_dir():
+        print(f"ERRO: a pasta {pasta} não existe")
+        return 1
+    resultado = validar_pasta(pasta)
+    if not resultado:
+        print(f"ERRO: nenhum JSON de clipe em {pasta}")
+        return 1
     for nome, erros in resultado.items():
         print(f"{nome}: " + ("ok" if not erros else "INVÁLIDO"))
         for erro in erros:
