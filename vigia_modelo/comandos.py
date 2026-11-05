@@ -39,6 +39,10 @@ def _processar_um(entrada: dict, args, modelo: Path) -> dict:
 
 
 def processar(args) -> int:
+    saida = Path(args.saida)
+    if not saida.parent.is_dir():
+        print(f"ERRO: a pasta {saida.parent} não existe. Confira o caminho de --saida.")
+        return 1
     entradas = json.loads(Path(args.manifesto).read_text(encoding="utf-8"))
     modelo = baixar_modelo(args.modelo, Path(args.pasta_modelos))
     gerados, falhas = [], 0

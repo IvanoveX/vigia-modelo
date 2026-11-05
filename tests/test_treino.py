@@ -193,6 +193,17 @@ def test_treinar_e_avaliar_ponta_a_ponta(tmp_path, capsys):
     assert "caindo" in texto
 
 
+def test_treinar_sem_nenhuma_pasta_existente_da_erro_claro(tmp_path):
+    with pytest.raises(ValueError, match="nenhuma pasta de dados"):
+        treinar([tmp_path / "a", tmp_path / "b"], epocas=1, sujeitos_teste=1, saida=tmp_path / "x.pt", semente=0)
+
+
+def test_treinar_avisa_da_pasta_ausente_entre_existentes(tmp_path, capsys):
+    pasta = grava_clipes(tmp_path / "dados", clipes_sinteticos())
+    treinar([pasta, tmp_path / "ausente"], epocas=1, sujeitos_teste=1, saida=tmp_path / "x.pt", semente=0)
+    assert "AVISO: pasta de dados não encontrada" in capsys.readouterr().out
+
+
 def test_treinar_sem_janela_de_treino_da_erro_claro(tmp_path):
     vazio = [clipe(f"Subject {s}/A/1.mp4", [(0, 6, "Drinking")]) for s in (1, 2)]
     pasta = grava_clipes(tmp_path / "dados", vazio)

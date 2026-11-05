@@ -30,10 +30,20 @@ def _treinar_epoca(rede, carregador, perda, otimizador) -> float:
     return total / len(carregador.dataset)
 
 
+def _pastas_existentes(pastas):
+    existentes = [p for p in pastas if Path(p).is_dir()]
+    if not existentes:
+        raise ValueError(f"nenhuma pasta de dados encontrada entre: {', '.join(map(str, pastas))}")
+    for p in pastas:
+        if not Path(p).is_dir():
+            print(f"AVISO: pasta de dados não encontrada, ignorada: {p}")
+    return existentes
+
+
 def treinar(pasta, epocas, sujeitos_teste, saida, semente, lote=32, taxa=1e-3):
     """pasta: uma pasta ou lista de pastas. sujeitos_teste: quantidade reservada."""
     torch.manual_seed(semente)
-    pastas = [pasta] if isinstance(pasta, (str, Path)) else list(pasta)
+    pastas = _pastas_existentes([pasta] if isinstance(pasta, (str, Path)) else list(pasta))
     treino, _, reservados = dividir_por_sujeito(carregar_pastas(pastas), sujeitos_teste)
     # Sem vazamento: nenhum sujeito de treino pode estar no teste.
     assert not {sujeito_do_clipe(c) for c in treino} & set(reservados)

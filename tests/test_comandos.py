@@ -51,6 +51,14 @@ def test_processar_grava_clipe_e_indice(tmp_path, brutos, extracao_falsa, capsys
     assert "100%" in capsys.readouterr().out
 
 
+def test_processar_sem_pasta_pai_da_saida_falha_sem_criar_arvore(tmp_path, brutos, extracao_falsa, capsys):
+    saida = tmp_path / "nao_existe" / "clipes"
+    codigo = rodar("processar", "--manifesto", manifesto(tmp_path), "--brutos", brutos, "--saida", saida)
+    assert codigo == 1
+    assert not (tmp_path / "nao_existe").exists()
+    assert "nao_existe" in capsys.readouterr().out
+
+
 def test_processar_recusa_json_invalido(tmp_path, brutos, monkeypatch, extracao_falsa, extracao):
     extracao["quadros"][1]["t"] = extracao["quadros"][0]["t"]
     saida = tmp_path / "saida"
