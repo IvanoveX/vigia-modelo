@@ -3,7 +3,9 @@ import re
 from pathlib import Path
 
 # O texto do rótulo pode ter parêntese sem fechar, ex.: "Falling (BW[5.9 to 10]".
-INTERVALO = re.compile(r"^\s*(.+?)\s*\[\s*([\d.]+)\s*to\s*([\d.]+)\s*\]")
+NOME_E_RESTO = re.compile(r"^\s*([^\[]+?)\s*\[(.*)$")
+# Alguns intervalos vêm sem a palavra "to", ex.: "[2.3 6]".
+PAR = re.compile(r"(\d+(?:\.\d+)?)\s*(?:to\s*)?(\d+(?:\.\d+)?)")
 
 
 def _linhas_de_dados(csv: Path) -> list[str]:
@@ -19,10 +21,16 @@ def _rotulos_da_linha(linha: str) -> list[dict]:
     # A descrição tem vírgulas; a coluna de classes é sempre a última.
     classes = linha.rsplit(",", 1)[1]
     rotulos = []
+    nome = None
     for trecho in classes.split(";"):
-        m = INTERVALO.match(trecho)
+        m = NOME_E_RESTO.match(trecho)
         if m:
-            rotulos.append({"t_ini": float(m[2]), "t_fim": float(m[3]), "rotulo": m[1].strip()})
+            nome = m[1].strip()
+        # Sem nome no trecho: é outro intervalo do rótulo anterior ("[0 to 1; 4 to 5]").
+        resto = m[2] if m else trecho
+        for ini, fim in PAR.findall(resto):
+            if nome:
+                rotulos.append({"t_ini": float(ini), "t_fim": float(fim), "rotulo": nome})
     return sorted(rotulos, key=lambda r: r["t_ini"])
 
 
