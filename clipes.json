@@ -1,0 +1,26 @@
+[
+  {
+    "id_clipe": "gmdcsa24-s2-fall-24",
+    "titulo": "Levanta do leito e cai de lado",
+    "arquivo": "Subject 2/Fall/24.mp4",
+    "leito": {"poligono": [[0.255, 0.441], [0.583, 0.444], [0.583, 0.528], [0.156, 0.546]]}
+  },
+  {
+    "id_clipe": "gmdcsa24-s3-adl-03",
+    "titulo": "Levanta da cama e anda",
+    "arquivo": "Subject 3/ADL/03.mp4",
+    "leito": {"poligono": [[0.312, 0.485], [0.651, 0.485], [0.661, 0.583], [0.245, 0.589]]}
+  },
+  {
+    "id_clipe": "gmdcsa24-s1-adl-04",
+    "titulo": "Deitado, senta na cama",
+    "arquivo": "Subject 1/ADL/04.mp4",
+    "leito": {"poligono": [[0.115, 0.533], [0.823, 0.583], [0.833, 0.741], [0.12, 0.667]]}
+  },
+  {
+    "id_clipe": "gmdcsa24-s2-fall-11",
+    "titulo": "Cai da cama para o chão",
+    "arquivo": "Subject 2/Fall/11.mp4",
+    "leito": {"poligono": [[0.318, 0.5], [0.696, 0.485], [0.703, 0.565], [0.297, 0.593]]}
+  }
+]
