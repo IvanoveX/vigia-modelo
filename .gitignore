@@ -1,0 +1,19 @@
+# Nunca versionar: notebook, videos, modelos, checkpoints, datasets
+*.ipynb
+*.mp4
+*.avi
+*.mov
+*.task
+*.pt
+*.pth
+*.ckpt
+dados/
+modelos/
+checkpoints/
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.superpowers/
+.DS_Store

@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Clipe processado do VIGIA",
+  "description": "Contrato entre o pipeline Python e a interface. Coordenadas e metadados: nenhuma imagem.",
+  "type": "object",
+  "required": ["versao_schema", "id_clipe", "origem", "gerado_por", "video", "leito", "keypoints", "quadros", "rotulos_origem", "baseline", "predicao_modelo"],
+  "additionalProperties": false,
+  "properties": {
+    "versao_schema": { "type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$" },
+    "id_clipe": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "origem": {
+      "type": "object",
+      "required": ["dataset", "arquivo", "licenca", "url", "citacao"],
+      "additionalProperties": false,
+      "properties": {
+        "dataset": { "type": "string", "minLength": 1 },
+        "arquivo": { "type": "string", "minLength": 1 },
+        "licenca": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "pattern": "^https://" },
+        "citacao": { "type": "string", "minLength": 1 }
+      }
+    },
+    "gerado_por": {
+      "type": "object",
+      "required": ["estimador", "modelo", "versao"],
+      "additionalProperties": false,
+      "properties": {
+        "estimador": { "type": "string" },
+        "modelo": { "enum": ["lite", "full", "heavy"] },
+        "versao": { "type": "string" }
+      }
+    },
+    "video": {
+      "type": "object",
+      "required": ["fps", "largura", "altura", "total_quadros", "duracao_s"],
+      "additionalProperties": false,
+      "properties": {
+        "fps": { "type": "number", "exclusiveMinimum": 0 },
+        "largura": { "type": "integer", "minimum": 1 },
+        "altura": { "type": "integer", "minimum": 1 },
+        "total_quadros": { "type": "integer", "minimum": 1 },
+        "duracao_s": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "leito": {
+      "description": "Nulo apenas em clipes usados só no treino, fora de public/clipes.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["poligono"],
+          "additionalProperties": false,
+          "properties": {
+            "poligono": {
+              "description": "Frações de largura e altura. O primeiro lado é a borda superior do colchão.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": { "type": "number", "minimum": 0, "maximum": 1 }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "keypoints": {
+      "const": ["nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"]
+    },
+    "quadros": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["t", "pontos"],
+        "additionalProperties": false,
+        "properties": {
+          "t": { "type": "number", "minimum": 0 },
+          "pontos": {
+            "description": "Nulo quando não houve pose no quadro. Cada ponto é [x, y, conf].",
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "array",
+                "minItems": 17,
+                "maxItems": 17,
+                "items": {
+                  "type": "array",
+                  "prefixItems": [
+                    { "type": "number", "minimum": -0.5, "maximum": 1.5 },
+                    { "type": "number", "minimum": -0.5, "maximum": 1.5 },
+                    { "type": "number", "minimum": 0, "maximum": 1 }
+                  ],
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "rotulos_origem": {
+      "description": "Intervalos copiados do CSV do dataset, com o texto original do rótulo.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["t_ini", "t_fim", "rotulo"],
+        "additionalProperties": false,
+        "properties": {
+          "t_ini": { "type": "number", "minimum": 0 },
+          "t_fim": { "type": "number", "minimum": 0 },
+          "rotulo": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "baseline": {
+      "description": "Nulo apenas em clipes sem leito marcado.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["descricao", "versao", "janelas"],
+          "additionalProperties": false,
+          "properties": {
+            "descricao": { "type": "string" },
+            "versao": { "type": "string" },
+            "janelas": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["t_ini", "t_fim", "classe", "features"],
+                "additionalProperties": false,
+                "properties": {
+                  "t_ini": { "type": "number", "minimum": 0 },
+                  "t_fim": { "type": "number", "minimum": 0 },
+                  "classe": { "enum": ["repouso", "sentando", "levantando", "queda", "fora", "indefinido"] },
+                  "features": {
+                    "type": "object",
+                    "required": ["inclinacao_graus", "altura_quadril", "dentro_leito", "distancia_leito", "vel_max", "frac_validos"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "inclinacao_graus": { "type": ["number", "null"] },
+                      "altura_quadril": { "type": ["number", "null"] },
+                      "dentro_leito": { "type": ["boolean", "null"] },
+                      "distancia_leito": { "type": ["number", "null"] },
+                      "vel_max": { "type": ["number", "null"] },
+                      "frac_validos": { "type": "number", "minimum": 0, "maximum": 1 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "predicao_modelo": {
+      "description": "Nulo até existir modelo treinado com dados próprios.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["modelo", "versao", "janelas"],
+          "additionalProperties": false,
+          "properties": {
+            "modelo": { "type": "string" },
+            "versao": { "type": "string" },
+            "janelas": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["t_ini", "t_fim", "classe", "confianca"],
+                "properties": {
+                  "t_ini": { "type": "number", "minimum": 0 },
+                  "t_fim": { "type": "number", "minimum": 0 },
+                  "classe": { "type": "string" },
+                  "confianca": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "probabilidades": { "type": "object", "additionalProperties": { "type": "number" } }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
