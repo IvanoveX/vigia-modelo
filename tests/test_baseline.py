@@ -128,7 +128,7 @@ def test_sessenta_por_cento_nulos_da_indefinido():
 
 
 def test_tudo_nulo_nao_quebra():
-    qs = [{"t": i / 10, "pontos": None} for i in range(25)]
+    qs = [{"t": i / 10, "pontos": None} for i in range(26)]
     janelas = gerar_janelas(qs, POLIGONO, L, A)
     assert len(janelas) == 2
     for j in janelas:
