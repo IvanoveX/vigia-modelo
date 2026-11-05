@@ -43,7 +43,7 @@ Fração de acerto: 0,830 (328 de 395 janelas).
 - **Que o modelo acerta 83%.** O teste tem um único sujeito e uma única semente. Janelas vizinhas se sobrepõem e não são amostras independentes, então as 395 janelas valem bem menos do que parecem.
 - **Nada sobre a pré-queda.** O teste classifica postura. Não há "sentar na borda" nem "tentar levantar sem apoio" nestes dados.
 - **Nada sobre o ambiente real.** Atores em casa, sem coberta, bem iluminados. Não há paciente, hospital, noite nem lençol.
-- **Que o número seja bom.** Só 'sentado' já responde por 54,9% das janelas de teste. A classe mais rara é a que mais importa, e nela o resultado é fraco: 21 de 29 janelas de 'deitado' saem como 'caindo'.
+- **Que o número seja bom.** Só 'sentado' já responde por 54,9% das janelas de teste. As classes mais próximas do que importa vão mal: só 50 de 86 janelas de 'caindo' acertam, e 21 de 29 janelas de 'deitado' saem como 'caindo'.
 
 ## Limitações
 
