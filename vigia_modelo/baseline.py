@@ -21,10 +21,6 @@ INCL_ERETO = 55
 ALTURA_SENTADO = 0.8
 DIST_PERTO = 1.0
 
-VERSAO = "v1"
-DESCRICAO = ("Regras geometricas sobre o esqueleto: inclinacao do tronco, "
-             "altura do quadril e posicao em relacao ao leito.")
-
 
 def _par(pontos, indices):
     """Meio dos pontos indicados, em coordenadas normalizadas."""
