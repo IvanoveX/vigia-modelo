@@ -83,21 +83,40 @@ Todos rodam como `python -m vigia_modelo <comando>`. Use `--help` em qualquer um
 | Comando | O que faz |
 | --- | --- |
 | `baixar-modelo --modelo heavy --pasta modelos` | Baixa o modelo de pose e confere o SHA-256. |
-| `processar --manifesto clipes.json --brutos <raiz> --saida ../interface/VIGIA/public/clipes --modelo heavy` | Gera um JSON por clipe do manifesto (com leito e baseline) e o `indice.json`. |
+| `processar --manifesto clipes.json --brutos <raiz> --saida ../interface/VIGIA/public/clipes --modelo heavy` | Gera um JSON por clipe do manifesto (com leito e baseline) e o `indice.json`. O `indice.json` não é atualizado se algum clipe falhar. |
 | `processar-treino --brutos <raiz> --saida dados/processados --modelo heavy [--sujeito N]` | Gera JSONs de todos os vídeos listados nos CSVs, sem leito nem baseline, para treino. Pula os que já existem e os vídeos ausentes no disco; um clipe com falha é reportado e os outros continuam. |
-| `quadros --arquivo <mp4> --saida dados/conferencia --n 6` | Grava PNGs locais de quadros espaçados, para marcar o polígono do leito. A pasta não vai para o git. |
+| `quadros --arquivo <mp4> --saida dados/conferencia --n 6` | Grava PNGs locais de quadros espaçados, para marcar o polígono do leito. Os PNGs ficam em `dados/conferencia`, pasta ignorada pelo git. |
+| `--pasta-modelos modelos` (em `processar` e `processar-treino`) | Pasta onde fica o modelo de pose baixado. |
 | `validar <pasta>` | Valida cada JSON da pasta (schema e regras extras). Sai com código diferente de zero se houver erro. |
 
 O `clipes.json` lista os clipes de demonstração: `id_clipe`, `titulo`, `arquivo` (relativo à raiz do dataset) e o polígono do leito em frações da largura e da altura. O primeiro lado do polígono é a borda superior do colchão.
+
+### Treino e avaliação (teste de funcionamento)
+
+```
+python -m treino.treinar --epocas 10 --sujeitos-teste 1 --saida checkpoints/gru.pt --semente 42
+python -m treino.avaliar --checkpoint checkpoints/gru.pt
+```
+
+Por padrão lê `dados/processados` e `../interface/VIGIA/public/clipes` (use `--dados PASTA [PASTA ...]` para mudar). `--sujeitos-teste N` reserva os N sujeitos de maior número, que nunca entram no treino. As classes são as do dataset público (deitado, sentado, em_pe, caindo); o mapeamento para as 6 classes do produto está pendente de dados próprios. Os números impressos são teste de funcionamento, sem validade como métrica de desempenho.
 
 ## Estimador de pose
 
 O MediaPipe Pose Landmarker é usado na demonstração. Ele não foi escolhido como estimador do produto: o estimador do produto segue em avaliação. O JSON registra o estimador, o modelo e a versão usados em cada clipe.
 
-Do model card do MediaPipe: o modelo "is not intended for human life-critical decisions". O mesmo vale para este projeto, que é um protótipo acadêmico.
+Do model card do MediaPipe: o modelo é "not intended for human life-critical decisions". O mesmo vale para este projeto, que é um protótipo acadêmico.
+
+## Métricas enviadas ao Google
+
+O README do pacote `@mediapipe/tasks-vision` diz que o processamento da imagem é local e que a biblioteca envia métricas de desempenho e de uso ao Google, e que o responsável pelo aplicativo deve obter consentimento informado. Observado neste trabalho:
+
+- No navegador: 1 POST de 143 bytes em 25 s, para `odml.pa.googleapis.com/v1/log`.
+- No Python: tentativas de conexão a `play.googleapis.com` durante o `processar` (conteúdo não inspecionado; bloqueadas pelo sandbox nesta máquina).
+
+Isso não afeta a demonstração com dados públicos, mas é um ponto a resolver antes de considerar o MediaPipe no produto, por causa da LGPD.
 
 ## Créditos
 
 - O mapeamento dos 33 pontos do MediaPipe para os 17 pontos COCO e a configuração do detector vêm do notebook dos colegas do grupo, que fizeram a primeira versão desse trabalho.
 - Dataset: GMDCSA-24, E. Alam, A. Sufian, P. Dutta, M. Leo, I. A. Hameed. *GMDCSA24: A Dataset for Human Fall Detection in Videos*. Data in Brief, 2024. Licença CC BY 4.0, em https://zenodo.org/records/13354453. Os JSONs derivados trazem essa origem, licença e citação no campo `origem`.
-- O pacote do dataset no GitHub traz um `LICENSE` MIT (Ekram Alam). Cumprimos as duas licenças: a CC BY 4.0 dos dados, com a atribuição acima, e o aviso de copyright e permissão da MIT que acompanha o pacote.
+- O pacote do dataset no GitHub traz um `LICENSE` MIT (Ekram Alam). Cumprimos as duas licenças: a CC BY 4.0 dos dados, com a atribuição acima, e o aviso de copyright e permissão da MIT que acompanha o pacote, copiado em `LICENSE-GMDCSA24` na raiz deste repositório.
