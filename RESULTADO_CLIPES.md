@@ -8,6 +8,8 @@ Por clipe: a porcentagem de quadros com pose e a classe do baseline geométrico 
 
 Os polígonos do leito foram marcados olhando quadros, antes de rodar o baseline, e não foram ajustados depois. Os limiares também não.
 
+Nota de leitura: as tabelas usam as classes do JSON. Na tela, `sentando` aparece como "Sentado no leito" e `levantando` como "Ereto perto do leito", e cada classe só aparece quando a janela de 2 s termina.
+
 ## Resumo
 
 | Clipe | Duração | Quadros | Com pose | Janelas |
